@@ -1,2 +1,2 @@
-host = 'hostname'
+host = 'localhost'
 port = 9090

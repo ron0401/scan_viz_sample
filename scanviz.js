@@ -1,13 +1,32 @@
 
+rosIsConnected = false
 
 var ros = new ROSLIB.Ros({
     url : 'ws://' + host +  ':' + String(port)
+});
+
+ros.on('connection', () => {
+    console.log('Connected to websocket server');
+    rosIsConnected = true;
+});
+
+
+const joyTopic = new ROSLIB.Topic({
+    ros : ros,
+    name : '/joy',
+    messageType : 'sensor_msgs/Joy'
 });
 
 var scanTopic = new ROSLIB.Topic({
     ros : ros,
     name : '/scan',
     messageType : 'sensor_msgs/LaserScan'
+});
+
+var odomTopic = new ROSLIB.Topic({
+    ros : ros,
+    name : '/odom',
+    messageType : 'nav_msgs/Odometry'
 });
 
 var chartData = {
@@ -92,4 +111,21 @@ scanTopic.subscribe(function(message) {
     chartData.labels = xValues;
     chartData.datasets[0].data = yValues;
     chart.update();
+});
+
+odomTopic.subscribe(function(message) {
+    val = message.twist.twist.linear.x
+    angle = message.twist.twist.angular.z
+    angle = angle * -1.0
+    if (angle > 0.5) {
+        angle = 0.5
+    }
+    if (angle < -0.5) {
+        angle = -0.5
+    }
+    if (val < 0.0) {
+        val = 0.0
+    }
+    gauge_1.set(val);
+    gauge_2.set(angle);
 });
